@@ -1,9 +1,0 @@
-module Agent
-  (
-    Agent
-  , test
-  ) where
-
-data Agent = Agent
-
-test = undefined
