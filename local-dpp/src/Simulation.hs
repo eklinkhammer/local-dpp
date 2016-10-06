@@ -4,10 +4,12 @@ module Simulation
   ) where
 
 import Queue
+import Location
+import Agent
 
--- In the interest of time, this class is a general framework for a robot simulation
+-- In the interest of time, this class is not a general framework for a robot simulation
 -- Probably needs a lot of refactoring to be used as a general event driven simulator
--- Oh well
+-- Oh well. Realistically, grab a Russian library once I have the time to understand it.
 
 test = putStrLn "Hello World!"
 
@@ -15,31 +17,6 @@ data Simulator = Simulator World EventQ ObjectiveFunction
 
 type ObjectiveFunction = (World -> Double)
   
-data World = World Agents Obstacles deriving (Show)
-
-data Agent = Agent State Brain deriving (Show)
-data State = State Location Orientation deriving (Show)
-type Orientation = Angle
-type Angle = Double
-
-data Brain = Brain
-instance Show Brain where
-  show _ = "" :: String
-
-data Location = Location XPos YPos deriving (Show)
-type XPos = Double
-type YPos = Double
-
-data Obstacle = Obstacle Location Radius
-              | POI Location Radius
-              | Wall Location Location
-              deriving (Show)
-
-type Radius = Double
-
-
-type Obstacles = [Obstacle]
-type Agents = [Agent]
 type Signal = Double
 
 type EventQ = Queue Event
@@ -71,9 +48,10 @@ executeEvent :: Event -> Simulator -> Simulator
 executeEvent = undefined
 
 createAgent :: Location -> Orientation ->  Agent
-createAgent location orient = Agent (State location orient) Brain
+createAgent location orient = Agent (State location orient) ([] :: Sensors) Brain
 
 
-
+getValue :: World -> Agent -> Double
+getValue (World _ pois _) (Agent state sensors _) = undefined
 
 
