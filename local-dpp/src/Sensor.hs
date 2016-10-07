@@ -3,6 +3,7 @@ module Sensor
     Sensor (..)
   , Quad (..)
   , scoreSensor
+  , clampToUnitCircle -- TODO move to Util
   ) where
 
 import Location
@@ -15,6 +16,8 @@ data Sensor = Sensor Quad deriving (Eq)
 instance Show Sensor where
   show (Sensor q) = show q
 
+sensors :: [Sensor]
+sensors = [Sensor NE, Sensor NW, Sensor SW, Sensor SE]
 
 -- scores a single other location, per a location scoring function, for a given sensor and state
 scoreSensor :: Sensor -> State -> Location -> (Location -> Double) -> Double

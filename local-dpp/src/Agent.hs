@@ -22,6 +22,10 @@ move :: Agent -> Location -> Agent
 move (Agent (State loc _) sensors brain) newLoc = Agent state sensors brain
   where state = State newLoc $ angle loc newLoc
 
+rotate :: Agent -> Double -> Agent
+rotate (Agent (State loc orient) sensors brain) dif = Agent state sensors brain
+  where state = State loc $ clampToUnitCircle ((clampToUnitCircle dif) + orient)
+
 -- The state variables used in training the network. The four quadrant values for POIs and other
 -- robots (respectively). 
 getStateVariables :: Agent -> [Obstacle] -> [Agent] -> [Double]
