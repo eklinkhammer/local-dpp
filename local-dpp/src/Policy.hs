@@ -4,4 +4,4 @@ module Policy
   ) where
 
 class Policy a where
-  predict :: a -> b -> c
+  predict :: a -> [Double] -> [Double]
