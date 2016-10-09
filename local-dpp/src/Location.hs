@@ -16,3 +16,6 @@ distance (Location x1 y1) (Location x2 y2) = sqrt $ square (x2 - x1) + square (y
 
 angle :: Location -> Location -> Double
 angle (Location x1 y1) (Location x2 y2) = tan $ (y2 - y1) / (x2 - x1)
+
+addLoc :: Location -> Location -> Location
+addLoc (Location x y) (Location a b) = Location (x + a) (b + y)

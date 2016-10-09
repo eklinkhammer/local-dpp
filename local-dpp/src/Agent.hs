@@ -1,22 +1,31 @@
 module Agent
   (
     Agent (..)
-  , getStateVariables
-  , move
+  , step
   ) where
 
 import Location
 import Sensor
 import State
 import Obstacle
+import Brain
+import NN (Network (..))
 
 data Agent = Agent State Sensors Brain deriving (Show, Eq)
 
-data Brain = Brain deriving (Eq)
-instance Show Brain where
-  show _ = "" :: String
-
 type Sensors = [Sensor]
+
+-- A step for an agent in a simulation is the agent picking an action based on its policy
+-- Out of world movements (ie, finite world) is dealt with by caller of step in boundLocation
+step :: [Agent] -> [Obstacle] -> Agent -> Agent
+step agents obstacles agent@(Agent state s brain) = move agent newLoc
+  where
+    newLoc = Location dx dy
+    (dx:dy:_) = predictNextAction brain vars
+    vars = getStateVariables agent obstacles agents
+  
+
+
 
 move :: Agent -> Location -> Agent
 move (Agent (State loc _) sensors brain) newLoc = Agent state sensors brain
@@ -48,3 +57,27 @@ robotScoring rob loc = let robLoc = robLocation rob
 
 robLocation :: Agent -> Location
 robLocation (Agent (State loc _) _ _) = loc
+
+
+calcReward :: Agent -> Double -> Double
+calcReward (Agent _ _ brain) g = (getRewardFunction brain) g
+
+-- getRewardFunction will pattern match on the different kinds of brains (greedy, D, D++, local)
+getRewardFunction :: Brain -> Double -> Double
+getRewardFunction brain = undefined
+
+agentPredictG :: Agent -> [Double] -> IO Double
+agentPredictG (Agent _ _ brain) = brainPredictG brain
+
+agentUpdateG :: Agent -> [Double] -> Double -> Agent
+agentUpdateG (Agent state sens brain) x target = Agent state sens $ brainUpdateG brain x target
+
+agentUsePolicy :: Agent -> Network -> Agent
+agentUsePolicy (Agent state sens brain) net = Agent state sens $ usePolicy brain net
+
+
+createAgent :: Location -> Agent
+createAgent loc = Agent (State loc 0) sensors createBrain
+
+receiveG :: Double -> Agent -> Agent
+receiveG = undefined

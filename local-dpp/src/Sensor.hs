@@ -4,6 +4,7 @@ module Sensor
   , Quad (..)
   , scoreSensor
   , clampToUnitCircle -- TODO move to Util
+  , sensors
   ) where
 
 import Location

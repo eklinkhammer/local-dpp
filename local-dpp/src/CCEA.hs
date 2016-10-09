@@ -5,21 +5,29 @@ module CCEA
 
 import Policy
 import System.Random
+import NN
+import Agent
 
 type Fitness = Double
 
 -- A module for Cooperative Coevolutionary Algorithms
 
+-- for a given population with k networks, generate 2k networks, with the additional k
+-- being mutations of the original k
 get2kNetworks :: (Policy p) => [(p,Fitness)] -> [(p,Fitness)]
 get2kNetworks pop = pop ++ successors
   where successors = map mutatePolicy pop
 
+-- Given a set of populations each with their own set of neural networks, choose one at random
+-- from each population (without replacement) to be on a team.
+-- Evaluate that team according to the performance of some team of agents
+-- Result is the list of policies inputted with new fitness values (based on simulation)
 simulateTeams :: (Policy p) => [[(p,Fitness)]] -> IO [[(p,Fitness)]]
 simulateTeams [] = return []
 simulateTeams pops = do
   (team,futureTeams) <- generateTeam pops
-  let score          = evaluateTeam $ map fst team
-  let scoredTeam     = map (assignFitness score) team
+  let scores         = evaluateTeam $ map fst team
+  let scoredTeam     = zipWith assignFitness scores team
   resultFutureTeams  <- simulateTeams futureTeams
   return $ returnTeam (scoredTeam, resultFutureTeams)
   
@@ -33,7 +41,7 @@ mutatePolicy = undefined
 assignFitness :: (Policy p) => Fitness -> (p,Fitness) -> (p,Fitness)
 assignFitness newF (p,f) = (p,newF)
 
-evaluateTeam :: (Policy p) => [p] -> Fitness
+evaluateTeam :: (Policy p) => [p] -> [Fitness]
 evaluateTeam = undefined
 
 
