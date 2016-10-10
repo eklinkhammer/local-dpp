@@ -17,7 +17,7 @@ import State
 import NN
 import Data.List
 
-data World = World Agents Obstacles UpperRightCorner
+data World = World Agents Obstacles UpperRightCorner deriving (Show)
 
 type Agents = [Agent]
 type Obstacles = [Obstacle]

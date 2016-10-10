@@ -28,8 +28,12 @@ get2kNetworks pop = do
 -- Evaluate that team according to the performance of some team of agents
 -- Result is the list of policies inputted with new fitness values (based on simulation)
 simulateTeams :: (World -> [Network] -> IO ([Fitness],World)) -> World -> [[(Network,Fitness)]] -> IO ([[(Network,Fitness)]],World)
-simulateTeams _  w          [] = return ([],w)
-simulateTeams evaluateTeam w pops = do
+simulateTeams evaluateTeam w pops = case (length $ head pops) of
+                                      0 -> return $ ([], w)
+                                      _ -> simulateTeams' evaluateTeam w pops
+
+simulateTeams' :: (World -> [Network] -> IO ([Fitness],World)) -> World -> [[(Network,Fitness)]] -> IO ([[(Network,Fitness)]],World)
+simulateTeams' evaluateTeam w pops = do
   (team,futureTeams) <- generateTeam pops
   (scores,world)     <- evaluateTeam w $ map fst team
   let scoredTeam     = zipWith assignFitness scores team
@@ -75,7 +79,6 @@ epsilonSelect source epsilon = do
                      else return $ removeMax source
   return (selected, rest)
 
--- unsafe removeN
 removeN :: [a] -> Int -> (a,[a])
 removeN xs n = let (ys,zs) = splitAt n xs
                in   (head zs, ys ++ (tail zs))

@@ -54,6 +54,7 @@ mutateNetwork :: Network -- input network
               -> Int     -- Wire
               -> Weight  -- New Weight
               -> Network
+mutateNetwork net 0 _ _ _ = net
 mutateNetwork (Network layers) layer node wire weight = Network $ replaceList newLayer layer layers
   where
     newLayer      = Layer $ replaceList newNode node listL
@@ -89,13 +90,15 @@ tweakLarge net = do
 
 getRandomCoord :: Network -> IO (Int,Int,Int)
 getRandomCoord (Network layers) = do
-  layerI         <- randomListInt layers
-  let (Layer listL) = layers !! layerI
-  nodeI <- randomListInt listL
-  let node = listL !! nodeI
-  wireI <- randomListInt node
-  let wire = node !! wireI
-  return (layerI, nodeI, wireI)
+  let (_:realLayers) = layers
+  layerIndex <- randomListInt realLayers
+  let (Layer nodes) = realLayers !! layerIndex
+  nodeIndex <- randomListInt nodes
+  let node = nodes !! nodeIndex
+  weightIndex <- randomListInt node
+  return (layerIndex,nodeIndex,weightIndex)
+  
+  
   
 
 tweakSmall :: Network -> IO Network
@@ -122,7 +125,7 @@ randomWeight :: Double -> IO Weight
 randomWeight frequencyWire = do
   exists <- randomRIO (0.0,1.0)
   value  <- randomRIO (0.0,1.0)
-  return $ if exists > frequencyWire then Value value else Zero
+  return (if exists > frequencyWire then Value value else Zero)
 
 randomListWeight :: Double -> [a] -> IO [Weight]
 randomListWeight freq l = sequence $ map (\_ -> randomWeight freq) l
