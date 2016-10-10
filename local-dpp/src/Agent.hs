@@ -2,6 +2,12 @@ module Agent
   (
     Agent (..)
   , step
+  , receiveG
+  , agentUsePolicy
+  , agentPredictG
+  , getStateVariables
+  , createAgent
+  , robLocation
   ) where
 
 import Location
@@ -72,12 +78,15 @@ agentPredictG (Agent _ _ brain) = brainPredictG brain
 agentUpdateG :: Agent -> [Double] -> Double -> Agent
 agentUpdateG (Agent state sens brain) x target = Agent state sens $ brainUpdateG brain x target
 
-agentUsePolicy :: Agent -> Network -> Agent
-agentUsePolicy (Agent state sens brain) net = Agent state sens $ usePolicy brain net
-
+agentUsePolicy :: Network -> Agent -> Agent
+agentUsePolicy net (Agent state sens brain) = Agent state sens $ usePolicy brain net
 
 createAgent :: Location -> Agent
 createAgent loc = Agent (State loc 0) sensors createBrain
 
-receiveG :: Double -> Agent -> Agent
-receiveG = undefined
+
+-- Agent uses G to update its estimate of G
+receiveG :: [Agent] -> [Obstacle] -> Double -> Agent -> Agent
+receiveG agents obs actualG agent = agentUpdateG agent (getStateVariables agent obs agents) actualG
+
+               

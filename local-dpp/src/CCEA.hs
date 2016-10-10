@@ -1,12 +1,16 @@
 module CCEA
   (
-
+    Fitness
+  , get2kNetworks
+  , simulateTeams
+  , epsilonSelectK
   ) where
 
 import Policy
 import System.Random
 import NN
 import Agent
+import World
 
 type Fitness = Double
 
@@ -14,36 +18,31 @@ type Fitness = Double
 
 -- for a given population with k networks, generate 2k networks, with the additional k
 -- being mutations of the original k
-get2kNetworks :: (Policy p) => [(p,Fitness)] -> [(p,Fitness)]
-get2kNetworks pop = pop ++ successors
-  where successors = map mutatePolicy pop
+get2kNetworks :: [(Network,Fitness)] -> IO [(Network,Fitness)]
+get2kNetworks pop = do
+  successors <- sequence $ map mutatePolicy pop
+  return $ pop ++ successors
 
 -- Given a set of populations each with their own set of neural networks, choose one at random
 -- from each population (without replacement) to be on a team.
 -- Evaluate that team according to the performance of some team of agents
 -- Result is the list of policies inputted with new fitness values (based on simulation)
-simulateTeams :: (Policy p) => [[(p,Fitness)]] -> IO [[(p,Fitness)]]
-simulateTeams [] = return []
-simulateTeams pops = do
+simulateTeams :: (World -> [Network] -> IO ([Fitness],World)) -> World -> [[(Network,Fitness)]] -> IO ([[(Network,Fitness)]],World)
+simulateTeams _  w          [] = return ([],w)
+simulateTeams evaluateTeam w pops = do
   (team,futureTeams) <- generateTeam pops
-  let scores         = evaluateTeam $ map fst team
+  (scores,world)     <- evaluateTeam w $ map fst team
   let scoredTeam     = zipWith assignFitness scores team
-  resultFutureTeams  <- simulateTeams futureTeams
-  return $ returnTeam (scoredTeam, resultFutureTeams)
-  
+  (resultFutureTeams,newW)  <- simulateTeams evaluateTeam world futureTeams
+  return $ (returnTeam (scoredTeam, resultFutureTeams),newW)
 
-initPolicy :: (Policy p) => (p,Fitness)
-initPolicy = undefined
-
-mutatePolicy :: (Policy p) => (p,Fitness) -> (p,Fitness)
-mutatePolicy = undefined
+mutatePolicy :: (Network,Fitness) -> IO (Network,Fitness)
+mutatePolicy (net,fit) = do
+  newNet <- mutateNetworkIO net
+  return (newNet,fit)
 
 assignFitness :: (Policy p) => Fitness -> (p,Fitness) -> (p,Fitness)
 assignFitness newF (p,f) = (p,newF)
-
-evaluateTeam :: (Policy p) => [p] -> [Fitness]
-evaluateTeam = undefined
-
 
 returnTeam :: ([a],[[a]]) -> [[a]]
 returnTeam (ms,tms) = zipWith (:) ms tms
