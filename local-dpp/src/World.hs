@@ -67,7 +67,7 @@ calculateObstacleScore agents (POI loc reqAgents val minR) = result
     validDistances = filter (< minR) agentDistances
     sortedDists    = sort validDistances
     result         = if (length validDistances) < reqAgents then 0
-                     else 0.5 * val / (sum $ take reqAgents sortedDists)
+                     else 0.5 * val / (sum $ map (max 0.5) $ take reqAgents sortedDists)
     
 
 assignAgentsPolicies :: [Network] -> World -> World

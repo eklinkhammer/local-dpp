@@ -29,8 +29,6 @@ step agents obstacles agent@(Agent state s brain) = move agent newLoc
     newLoc = Location dx dy
     (dx:dy:_) = predictNextAction brain vars
     vars = getStateVariables agent obstacles agents
-  
-
 
 
 move :: Agent -> Location -> Agent

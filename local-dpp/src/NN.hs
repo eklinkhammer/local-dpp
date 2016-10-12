@@ -59,15 +59,22 @@ mutateNetwork (Network layers) layer node wire weight = Network $ replaceList ne
   where
     newLayer      = Layer $ replaceList newNode node listL
     newNode       = replaceList weight wire oldNode
-    (Layer listL) = (layers !! layer)
+    (Layer listL) = (layers !! ((+) 1 layer))
     oldNode       = (listL !! node)
 
 accessWeight :: Network -> Int -> Int -> Int -> Weight
-accessWeight (Network layers) layer node wire = let (Layer l) = (layers !! layer) in (l !! node) !! wire
+accessWeight (Network layers) layer node wire =
+  let (Layer l) = safeAccess layer layers
+  in safeAccess wire $ safeAccess node l
 
+safeAccess :: (Show a) => Int -> [a] -> a
+safeAccess i xs = if length xs > i && i >= 0 then xs !! i else error ("Safe access for array failure" ++ show xs ++ " accessed at " ++ show i)
+
+-- replace list preserves the length of the list, but replaces a single element
 replaceList :: a -> Int -> [a] -> [a]
+replaceList _ _ [] = []
 replaceList elem index xs = let (ys,zs) = splitAt index xs
-                            in if length zs > 1 then ys ++ [elem] ++ (tail zs)
+                            in if length zs > 0 then ys ++ [elem] ++ (tail zs)
                                else ys ++ [elem]
 
 -- With equal probability, change one node by 
@@ -75,7 +82,8 @@ mutateNetworkIO :: Network -> IO Network
 mutateNetworkIO network = do
   bigSmall <- randomBool
   newNet   <- if bigSmall then tweakLarge network else tweakSmall network >>= tweakSmall >>= tweakSmall
-  return newNet
+  finalNet <- if newNet == network then mutateNetworkIO network else return newNet
+  return finalNet
 
 tweakLarge :: Network -> IO Network
 tweakLarge net = do
@@ -96,10 +104,10 @@ getRandomCoord (Network layers) = do
   nodeIndex <- randomListInt nodes
   let node = nodes !! nodeIndex
   weightIndex <- randomListInt node
+  putStrLn $ "Node: " ++ show node
+  putStrLn $ "Node length: " ++ (show $ length node)
+  putStrLn $ "Layer coordinates: " ++ show (layerIndex,nodeIndex,weightIndex)
   return (layerIndex,nodeIndex,weightIndex)
-  
-  
-  
 
 tweakSmall :: Network -> IO Network
 tweakSmall net = do

@@ -28,6 +28,7 @@ get2kNetworks pop = do
 -- Evaluate that team according to the performance of some team of agents
 -- Result is the list of policies inputted with new fitness values (based on simulation)
 simulateTeams :: (World -> [Network] -> IO ([Fitness],World)) -> World -> [[(Network,Fitness)]] -> IO ([[(Network,Fitness)]],World)
+simulateTeams evaluateTeam w []   = return $ ([],w)
 simulateTeams evaluateTeam w pops = case (length $ head pops) of
                                       0 -> return $ ([], w)
                                       _ -> simulateTeams' evaluateTeam w pops
@@ -42,7 +43,9 @@ simulateTeams' evaluateTeam w pops = do
 
 mutatePolicy :: (Network,Fitness) -> IO (Network,Fitness)
 mutatePolicy (net,fit) = do
+  --putStrLn $ "Old Net" ++ show net
   newNet <- mutateNetworkIO net
+  --putStrLn $ "New net" ++ show newNet
   return (newNet,fit)
 
 assignFitness :: (Policy p) => Fitness -> (p,Fitness) -> (p,Fitness)
